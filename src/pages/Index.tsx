@@ -5,13 +5,13 @@ import { addWebsite, getWebsites, removeWebsite } from '@/services/websiteStorag
 import WebsiteCard from '@/components/WebsiteCard';
 import AddWebsiteForm from '@/components/AddWebsiteForm';
 import EmptyState from '@/components/EmptyState';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import { Globe } from 'lucide-react';
 
 const Index: React.FC = () => {
   const [websites, setWebsites] = useState<Website[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Reference to the dialog trigger button for empty state
   const dialogTriggerRef = useRef<HTMLButtonElement>(null);
 
   // Load websites from localStorage on component mount
@@ -40,23 +40,25 @@ const Index: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-green-gradient">
-      <div className="container max-w-6xl mx-auto px-4 py-12">
-        <header className="mb-12 text-center">
-          <div className="flex flex-col items-center mb-6">
-            <Globe size={48} className="text-spot-primary mb-4" />
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">My Favorite Web Spots</h1>
-            <p className="text-gray-600 max-w-xl mx-auto">Keep all your favorite websites in one place for easy access</p>
-          </div>
-          
-          {websites.length > 0 && (
-            <div className="mt-6">
-              <AddWebsiteForm onAddWebsite={handleAddWebsite} />
+    <div className="min-h-screen flex flex-col bg-grid-pattern bg-green-gradient">
+      <Header />
+      
+      <main className="flex-grow pt-24 pb-12">
+        <div className="container max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <div className="flex flex-col items-center mb-6">
+              <Globe size={48} className="text-spot-primary mb-4" />
+              <h1 className="text-4xl font-bold text-gray-800 mb-2">My Favorite Web Spots</h1>
+              <p className="text-gray-600 max-w-xl mx-auto">Keep all your favorite websites in one place for easy access</p>
             </div>
-          )}
-        </header>
+            
+            {websites.length > 0 && (
+              <div className="mt-6">
+                <AddWebsiteForm onAddWebsite={handleAddWebsite} />
+              </div>
+            )}
+          </div>
 
-        <main className="mb-12">
           {websites.length === 0 ? (
             <EmptyState onAddClick={() => dialogTriggerRef.current?.click()} />
           ) : (
@@ -71,7 +73,6 @@ const Index: React.FC = () => {
             </div>
           )}
 
-          {/* Hidden trigger for empty state */}
           {websites.length === 0 && (
             <div className="hidden">
               <AddWebsiteForm
@@ -80,8 +81,10 @@ const Index: React.FC = () => {
               />
             </div>
           )}
-        </main>
-      </div>
+        </div>
+      </main>
+
+      <Footer />
     </div>
   );
 };
