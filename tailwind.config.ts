@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -63,12 +62,12 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom colors for our website favorites app
+				// Updated colors for our website favorites app
 				spot: {
-					primary: '#0EA5E9',
-					secondary: '#0284C7',
-					accent: '#E0F2FE',
-					background: '#F0F9FF',
+					primary: '#6AB04C',    // Changed to a green color
+					secondary: '#4C9A2A',  // Darker green
+					accent: '#F2FCE2',     // Light green for accent
+					background: '#FFFFFF', // White background
 				}
 			},
 			borderRadius: {
@@ -107,6 +106,9 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.3s ease-in-out',
 				'fade-out': 'fade-out 0.3s ease-in-out'
+			},
+			backgroundImage: {
+				'green-gradient': 'linear-gradient(135deg, #F2FCE2 0%, #FFFFFF 100%)',
 			}
 		}
 	},

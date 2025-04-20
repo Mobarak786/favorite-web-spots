@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,6 +24,7 @@ const AddWebsiteForm: React.FC<AddWebsiteFormProps> = ({ onAddWebsite }) => {
   const [url, setUrl] = useState('');
   const [customIconUrl, setCustomIconUrl] = useState('');
   const [useCustomIcon, setUseCustomIcon] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +55,10 @@ const AddWebsiteForm: React.FC<AddWebsiteFormProps> = ({ onAddWebsite }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="flex gap-2 items-center bg-spot-primary hover:bg-spot-secondary">
+        <Button 
+          ref={triggerRef}
+          className="flex gap-2 items-center bg-spot-primary hover:bg-spot-secondary text-white"
+        >
           <Plus size={16} />
           <span>Add Website</span>
         </Button>
@@ -124,7 +128,7 @@ const AddWebsiteForm: React.FC<AddWebsiteFormProps> = ({ onAddWebsite }) => {
             >
               Cancel
             </Button>
-            <Button type="submit">Add Website</Button>
+            <Button type="submit" className="bg-spot-primary hover:bg-spot-secondary">Add Website</Button>
           </div>
         </form>
       </DialogContent>

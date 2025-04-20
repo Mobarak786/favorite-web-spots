@@ -24,7 +24,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({ website, onRemove }) => {
 
   return (
     <Card 
-      className="group hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden h-[160px] animate-fade-in"
+      className="group hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden h-[180px] animate-fade-in border-2 border-transparent hover:border-spot-accent"
       onClick={handleClick}
     >
       <CardContent className="p-4 flex flex-col items-center justify-between h-full relative">
@@ -34,16 +34,17 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({ website, onRemove }) => {
             size="icon" 
             className="h-8 w-8 text-destructive hover:bg-destructive/10"
             onClick={handleRemove}
+            aria-label={`Remove ${website.name}`}
           >
             <Trash size={16} />
           </Button>
         </div>
         
-        <div className="flex justify-center items-center h-20 w-20 my-2">
+        <div className="flex justify-center items-center h-24 w-24 my-2 p-2">
           <img 
             src={website.iconUrl} 
             alt={`${website.name} icon`} 
-            className="max-h-full max-w-full object-contain rounded"
+            className="max-h-full max-w-full object-contain rounded-md"
             onError={(e) => {
               // If image fails to load, use a fallback
               (e.target as HTMLImageElement).src = 'https://www.google.com/s2/favicons?domain=example.com&sz=64';
@@ -51,7 +52,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({ website, onRemove }) => {
           />
         </div>
         
-        <p className="text-center font-medium text-sm mt-2 line-clamp-2">
+        <p className="text-center font-medium text-sm mt-2 line-clamp-2 text-gray-800">
           {website.name}
         </p>
       </CardContent>
