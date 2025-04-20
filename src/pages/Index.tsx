@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { Website } from '@/types/website';
 import { addWebsite, getWebsites, removeWebsite } from '@/services/websiteStorage';
@@ -29,6 +28,20 @@ const Index: React.FC = () => {
   const handleRemoveWebsite = (id: string) => {
     removeWebsite(id);
     setWebsites(prev => prev.filter(website => website.id !== id));
+  };
+
+  const handleEditWebsite = (id: string, name: string, url: string) => {
+    setWebsites(prev => prev.map(website => 
+      website.id === id 
+        ? { ...website, name, url }
+        : website
+    ));
+    
+    // Update localStorage
+    const updatedWebsites = getWebsites().map(website =>
+      website.id === id ? { ...website, name, url } : website
+    );
+    localStorage.setItem('favorite-websites', JSON.stringify(updatedWebsites));
   };
 
   if (isLoading) {
@@ -68,6 +81,7 @@ const Index: React.FC = () => {
                   key={website.id}
                   website={website}
                   onRemove={handleRemoveWebsite}
+                  onEdit={handleEditWebsite}
                 />
               ))}
             </div>
