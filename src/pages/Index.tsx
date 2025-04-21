@@ -30,13 +30,16 @@ const Index: React.FC = () => {
     fetchData();
 
     // Listen to auth changes and refetch (handles switching users)
-    const { data: subscription } = supabase.auth.onAuthStateChange(() => {
+    const { data } = supabase.auth.onAuthStateChange(() => {
       fetchData();
     });
 
     return () => {
       ignore = true;
-      subscription?.unsubscribe();
+      // Fix: Access the subscription property correctly
+      if (data?.subscription) {
+        data.subscription.unsubscribe();
+      }
     };
   }, []);
 
@@ -119,4 +122,3 @@ const Index: React.FC = () => {
 };
 
 export default Index;
-
