@@ -1,43 +1,94 @@
 
 import { Website } from "../types/website";
+import { supabase } from "@/integrations/supabase/client";
 
-const STORAGE_KEY = "favorite-websites";
+// Fetch all websites for the logged-in user
+export const getWebsites = async (): Promise<Website[]> => {
+  const { data, error } = await supabase
+    .from("websites")
+    .select("id, name, url, icon_url, created_at")
+    .order("created_at", { ascending: true });
 
-export const getWebsites = (): Website[] => {
-  try {
-    const websitesJson = localStorage.getItem(STORAGE_KEY);
-    return websitesJson ? JSON.parse(websitesJson) : [];
-  } catch (error) {
-    console.error("Failed to get websites from localStorage:", error);
+  if (error) {
+    console.error("Failed to fetch websites from Supabase:", error);
     return [];
   }
+
+  // Map DB fields to Website interface
+  return (
+    data?.map((w) => ({
+      id: w.id,
+      name: w.name,
+      url: w.url,
+      iconUrl: w.icon_url,
+      createdAt: new Date(w.created_at).getTime(),
+    })) ?? []
+  );
 };
 
-export const saveWebsites = (websites: Website[]): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(websites));
-  } catch (error) {
-    console.error("Failed to save websites to localStorage:", error);
+export const addWebsite = async (
+  website: Omit<Website, "id" | "createdAt">
+): Promise<Website | undefined> => {
+  // Fetch current user ID
+  const user = (await supabase.auth.getUser()).data.user;
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+
+  const { data, error } = await supabase
+    .from("websites")
+    .insert({
+      user_id: user.id,
+      name: website.name,
+      url: website.url,
+      icon_url: website.iconUrl,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Failed to add website to Supabase:", error);
+    return undefined;
+  }
+
+  return {
+    id: data.id,
+    name: data.name,
+    url: data.url,
+    iconUrl: data.icon_url,
+    createdAt: new Date(data.created_at).getTime(),
+  };
+};
+
+export const removeWebsite = async (id: string): Promise<void> => {
+  const { error } = await supabase
+    .from("websites")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Failed to delete website from Supabase:", error);
   }
 };
 
-export const addWebsite = (website: Omit<Website, "id" | "createdAt">): Website => {
-  const websites = getWebsites();
-  
-  const newWebsite: Website = {
-    ...website,
-    id: Date.now().toString(),
-    createdAt: Date.now()
-  };
-  
-  saveWebsites([...websites, newWebsite]);
-  return newWebsite;
-};
+export const updateWebsite = async (
+  id: string,
+  updates: Partial<Pick<Website, "name" | "url">>
+): Promise<void> => {
+  const patch: any = {};
+  if ("name" in updates) patch.name = updates.name;
+  if ("url" in updates) patch.url = updates.url;
 
-export const removeWebsite = (id: string): void => {
-  const websites = getWebsites();
-  const updatedWebsites = websites.filter(website => website.id !== id);
-  saveWebsites(updatedWebsites);
+  if (Object.keys(patch).length === 0) return;
+
+  const { error } = await supabase
+    .from("websites")
+    .update(patch)
+    .eq("id", id);
+
+  if (error) {
+    console.error("Failed to update website in Supabase:", error);
+  }
 };
 
 // Helper function to extract favicon from a URL
@@ -50,3 +101,4 @@ export const getFaviconUrl = (url: string): string => {
     return "https://www.google.com/s2/favicons?domain=example.com&sz=64";
   }
 };
+

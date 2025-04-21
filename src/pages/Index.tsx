@@ -1,47 +1,62 @@
+
 import React, { useEffect, useState, useRef } from 'react';
 import { Website } from '@/types/website';
-import { addWebsite, getWebsites, removeWebsite } from '@/services/websiteStorage';
+import { addWebsite, getWebsites, removeWebsite, updateWebsite } from '@/services/websiteStorage';
 import WebsiteCard from '@/components/WebsiteCard';
 import AddWebsiteForm from '@/components/AddWebsiteForm';
 import EmptyState from '@/components/EmptyState';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Globe } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
 
 const Index: React.FC = () => {
   const [websites, setWebsites] = useState<Website[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const dialogTriggerRef = useRef<HTMLButtonElement>(null);
 
-  // Load websites from localStorage on component mount
+  // Load websites from Supabase on component mount and on auth state changes
   useEffect(() => {
-    const storedWebsites = getWebsites();
-    setWebsites(storedWebsites);
-    setIsLoading(false);
+    let ignore = false;
+    async function fetchData() {
+      setIsLoading(true);
+      const list = await getWebsites();
+      if (!ignore) {
+        setWebsites(list);
+        setIsLoading(false);
+      }
+    }
+
+    fetchData();
+
+    // Listen to auth changes and refetch (handles switching users)
+    const { data: subscription } = supabase.auth.onAuthStateChange(() => {
+      fetchData();
+    });
+
+    return () => {
+      ignore = true;
+      subscription?.unsubscribe();
+    };
   }, []);
 
-  const handleAddWebsite = (name: string, url: string, iconUrl: string) => {
-    const newWebsite = addWebsite({ name, url, iconUrl });
-    setWebsites(prev => [...prev, newWebsite]);
+  const handleAddWebsite = async (name: string, url: string, iconUrl: string) => {
+    const newWebsite = await addWebsite({ name, url, iconUrl });
+    if (newWebsite) setWebsites(prev => [...prev, newWebsite]);
   };
 
-  const handleRemoveWebsite = (id: string) => {
-    removeWebsite(id);
+  const handleRemoveWebsite = async (id: string) => {
+    await removeWebsite(id);
     setWebsites(prev => prev.filter(website => website.id !== id));
   };
 
-  const handleEditWebsite = (id: string, name: string, url: string) => {
+  const handleEditWebsite = async (id: string, name: string, url: string) => {
+    await updateWebsite(id, { name, url });
     setWebsites(prev => prev.map(website => 
       website.id === id 
         ? { ...website, name, url }
         : website
     ));
-    
-    // Update localStorage
-    const updatedWebsites = getWebsites().map(website =>
-      website.id === id ? { ...website, name, url } : website
-    );
-    localStorage.setItem('favorite-websites', JSON.stringify(updatedWebsites));
   };
 
   if (isLoading) {
@@ -104,3 +119,4 @@ const Index: React.FC = () => {
 };
 
 export default Index;
+
