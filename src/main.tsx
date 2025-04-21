@@ -11,8 +11,8 @@ createRoot(rootElement).render(<App />);
 // Register the service worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/src/service-worker.js').catch(err =>
-      console.warn('ServiceWorker registration failed:', err)
+    navigator.serviceWorker.register('/service-worker.js').catch(err =>
+      console.log('ServiceWorker registration failed:', err)
     );
   });
 }
