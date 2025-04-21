@@ -1,73 +1,94 @@
 
 import { Website } from "../types/website";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Fetch all websites for the logged-in user
 export const getWebsites = async (): Promise<Website[]> => {
-  const { data, error } = await supabase
-    .from("websites")
-    .select("id, name, url, icon_url, created_at")
-    .order("created_at", { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from("websites")
+      .select("id, name, url, icon_url, created_at")
+      .order("created_at", { ascending: true });
 
-  if (error) {
-    console.error("Failed to fetch websites from Supabase:", error);
+    if (error) {
+      console.error("Failed to fetch websites from Supabase:", error);
+      if (error.message.includes("JWT")) {
+        toast.error("Session expired. Please log in again.");
+      }
+      return [];
+    }
+
+    // Map DB fields to Website interface
+    return (
+      data?.map((w) => ({
+        id: w.id,
+        name: w.name,
+        url: w.url,
+        iconUrl: w.icon_url,
+        createdAt: new Date(w.created_at).getTime(),
+      })) ?? []
+    );
+  } catch (error) {
+    console.error("Error fetching websites:", error);
     return [];
   }
-
-  // Map DB fields to Website interface
-  return (
-    data?.map((w) => ({
-      id: w.id,
-      name: w.name,
-      url: w.url,
-      iconUrl: w.icon_url,
-      createdAt: new Date(w.created_at).getTime(),
-    })) ?? []
-  );
 };
 
 export const addWebsite = async (
   website: Omit<Website, "id" | "createdAt">
 ): Promise<Website | undefined> => {
-  // Fetch current user ID
-  const user = (await supabase.auth.getUser()).data.user;
-  if (!user) {
-    throw new Error("User not authenticated");
-  }
+  try {
+    // Fetch current user ID
+    const user = (await supabase.auth.getUser()).data.user;
+    if (!user) {
+      toast.error("You need to be logged in to add websites.");
+      return undefined;
+    }
 
-  const { data, error } = await supabase
-    .from("websites")
-    .insert({
-      user_id: user.id,
-      name: website.name,
-      url: website.url,
-      icon_url: website.iconUrl,
-    })
-    .select()
-    .single();
+    const { data, error } = await supabase
+      .from("websites")
+      .insert({
+        user_id: user.id,
+        name: website.name,
+        url: website.url,
+        icon_url: website.iconUrl,
+      })
+      .select()
+      .single();
 
-  if (error) {
-    console.error("Failed to add website to Supabase:", error);
+    if (error) {
+      console.error("Failed to add website to Supabase:", error);
+      toast.error("Failed to add website. Please try again.");
+      return undefined;
+    }
+
+    return {
+      id: data.id,
+      name: data.name,
+      url: data.url,
+      iconUrl: data.icon_url,
+      createdAt: new Date(data.created_at).getTime(),
+    };
+  } catch (error) {
+    console.error("Error adding website:", error);
     return undefined;
   }
-
-  return {
-    id: data.id,
-    name: data.name,
-    url: data.url,
-    iconUrl: data.icon_url,
-    createdAt: new Date(data.created_at).getTime(),
-  };
 };
 
 export const removeWebsite = async (id: string): Promise<void> => {
-  const { error } = await supabase
-    .from("websites")
-    .delete()
-    .eq("id", id);
+  try {
+    const { error } = await supabase
+      .from("websites")
+      .delete()
+      .eq("id", id);
 
-  if (error) {
-    console.error("Failed to delete website from Supabase:", error);
+    if (error) {
+      console.error("Failed to delete website from Supabase:", error);
+      toast.error("Failed to delete website. Please try again.");
+    }
+  } catch (error) {
+    console.error("Error removing website:", error);
   }
 };
 
@@ -75,19 +96,24 @@ export const updateWebsite = async (
   id: string,
   updates: Partial<Pick<Website, "name" | "url">>
 ): Promise<void> => {
-  const patch: any = {};
-  if ("name" in updates) patch.name = updates.name;
-  if ("url" in updates) patch.url = updates.url;
+  try {
+    const patch: any = {};
+    if ("name" in updates) patch.name = updates.name;
+    if ("url" in updates) patch.url = updates.url;
 
-  if (Object.keys(patch).length === 0) return;
+    if (Object.keys(patch).length === 0) return;
 
-  const { error } = await supabase
-    .from("websites")
-    .update(patch)
-    .eq("id", id);
+    const { error } = await supabase
+      .from("websites")
+      .update(patch)
+      .eq("id", id);
 
-  if (error) {
-    console.error("Failed to update website in Supabase:", error);
+    if (error) {
+      console.error("Failed to update website in Supabase:", error);
+      toast.error("Failed to update website. Please try again.");
+    }
+  } catch (error) {
+    console.error("Error updating website:", error);
   }
 };
 
@@ -101,4 +127,3 @@ export const getFaviconUrl = (url: string): string => {
     return "https://www.google.com/s2/favicons?domain=example.com&sz=64";
   }
 };
-
