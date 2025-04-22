@@ -15,7 +15,7 @@ import { getFaviconUrl } from '@/services/websiteStorage';
 import { toast } from 'sonner';
 
 interface AddWebsiteFormProps {
-  onAddWebsite: (name: string, url: string, iconUrl: string) => void;
+  onAddWebsite: (name: string, url: string, iconUrl: string, description?: string) => void;
 }
 
 const AddWebsiteForm = forwardRef<HTMLButtonElement, AddWebsiteFormProps>(
@@ -23,6 +23,7 @@ const AddWebsiteForm = forwardRef<HTMLButtonElement, AddWebsiteFormProps>(
     const [open, setOpen] = useState(false);
     const [name, setName] = useState('');
     const [url, setUrl] = useState('');
+    const [description, setDescription] = useState('');
     const [customIconUrl, setCustomIconUrl] = useState('');
     const [useCustomIcon, setUseCustomIcon] = useState(false);
 
@@ -30,13 +31,9 @@ const AddWebsiteForm = forwardRef<HTMLButtonElement, AddWebsiteFormProps>(
       e.preventDefault();
       
       try {
-        // Validate the URL format
         new URL(url);
-        
-        // Determine which icon URL to use
         const iconUrl = useCustomIcon && customIconUrl ? customIconUrl : getFaviconUrl(url);
-        
-        onAddWebsite(name, url, iconUrl);
+        onAddWebsite(name, url, iconUrl, description.trim() || undefined);
         resetForm();
         setOpen(false);
         toast.success(`Added ${name} to your favorites`);
@@ -48,6 +45,7 @@ const AddWebsiteForm = forwardRef<HTMLButtonElement, AddWebsiteFormProps>(
     const resetForm = () => {
       setName('');
       setUrl('');
+      setDescription('');
       setCustomIconUrl('');
       setUseCustomIcon(false);
     };
@@ -88,6 +86,16 @@ const AddWebsiteForm = forwardRef<HTMLButtonElement, AddWebsiteFormProps>(
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://example.com" 
                 required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description (Optional)</Label>
+              <Input 
+                id="description" 
+                value={description} 
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Add a description..." 
               />
             </div>
             

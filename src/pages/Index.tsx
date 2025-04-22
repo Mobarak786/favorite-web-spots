@@ -7,17 +7,20 @@ import AddWebsiteForm from '@/components/AddWebsiteForm';
 import EmptyState from '@/components/EmptyState';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import SearchBar from '@/components/SearchBar';
 import { Globe } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 
 const Index: React.FC = () => {
   const [websites, setWebsites] = useState<Website[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const dialogTriggerRef = useRef<HTMLButtonElement>(null);
 
-  // Load websites from Supabase on component mount and on auth state changes
   useEffect(() => {
     let ignore = false;
+    
     async function fetchData() {
       setIsLoading(true);
       const list = await getWebsites();
@@ -29,22 +32,18 @@ const Index: React.FC = () => {
 
     fetchData();
 
-    // Listen to auth changes and refetch (handles switching users)
-    const { data } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
       fetchData();
     });
 
     return () => {
       ignore = true;
-      // Fix: Access the subscription property correctly
-      if (data?.subscription) {
-        data.subscription.unsubscribe();
-      }
+      subscription?.unsubscribe();
     };
   }, []);
 
-  const handleAddWebsite = async (name: string, url: string, iconUrl: string) => {
-    const newWebsite = await addWebsite({ name, url, iconUrl });
+  const handleAddWebsite = async (name: string, url: string, iconUrl: string, description?: string) => {
+    const newWebsite = await addWebsite({ name, url, iconUrl, description });
     if (newWebsite) setWebsites(prev => [...prev, newWebsite]);
   };
 
@@ -53,14 +52,31 @@ const Index: React.FC = () => {
     setWebsites(prev => prev.filter(website => website.id !== id));
   };
 
-  const handleEditWebsite = async (id: string, name: string, url: string) => {
-    await updateWebsite(id, { name, url });
+  const handleEditWebsite = async (id: string, name: string, url: string, description?: string) => {
+    await updateWebsite(id, { name, url, description });
     setWebsites(prev => prev.map(website => 
       website.id === id 
-        ? { ...website, name, url }
+        ? { ...website, name, url, description }
         : website
     ));
   };
+
+  const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
+    await updateWebsite(id, { isFavorite });
+    setWebsites(prev => prev.map(website =>
+      website.id === id
+        ? { ...website, isFavorite }
+        : website
+    ));
+  };
+
+  const filteredWebsites = websites.filter(website => {
+    const searchContent = `${website.name} ${website.description || ''}`.toLowerCase();
+    return searchContent.includes(searchQuery.toLowerCase());
+  });
+
+  const favoriteWebsites = filteredWebsites.filter(w => w.isFavorite);
+  const allWebsites = filteredWebsites;
 
   if (isLoading) {
     return (
@@ -69,6 +85,20 @@ const Index: React.FC = () => {
       </div>
     );
   }
+
+  const renderWebsiteGrid = (websites: Website[]) => (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+      {websites.map((website) => (
+        <WebsiteCard
+          key={website.id}
+          website={website}
+          onRemove={handleRemoveWebsite}
+          onEdit={handleEditWebsite}
+          onToggleFavorite={handleToggleFavorite}
+        />
+      ))}
+    </div>
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-grid-pattern bg-green-gradient">
@@ -84,8 +114,11 @@ const Index: React.FC = () => {
             </div>
             
             {websites.length > 0 && (
-              <div className="mt-6">
-                <AddWebsiteForm onAddWebsite={handleAddWebsite} />
+              <div className="mt-6 flex flex-col items-center gap-4">
+                <div className="flex items-center justify-center w-full gap-4 flex-wrap">
+                  <SearchBar onSearch={setSearchQuery} />
+                  <AddWebsiteForm onAddWebsite={handleAddWebsite} />
+                </div>
               </div>
             )}
           </div>
@@ -93,16 +126,32 @@ const Index: React.FC = () => {
           {websites.length === 0 ? (
             <EmptyState onAddClick={() => dialogTriggerRef.current?.click()} />
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-              {websites.map((website) => (
-                <WebsiteCard
-                  key={website.id}
-                  website={website}
-                  onRemove={handleRemoveWebsite}
-                  onEdit={handleEditWebsite}
-                />
-              ))}
-            </div>
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="w-full max-w-md mx-auto mb-6">
+                <TabsTrigger value="all" className="flex-1">
+                  All Websites ({allWebsites.length})
+                </TabsTrigger>
+                <TabsTrigger value="favorites" className="flex-1">
+                  Favorites ({favoriteWebsites.length})
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="all">
+                {allWebsites.length > 0 ? (
+                  renderWebsiteGrid(allWebsites)
+                ) : (
+                  <p className="text-center text-gray-500">No websites found</p>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="favorites">
+                {favoriteWebsites.length > 0 ? (
+                  renderWebsiteGrid(favoriteWebsites)
+                ) : (
+                  <p className="text-center text-gray-500">No favorite websites yet</p>
+                )}
+              </TabsContent>
+            </Tabs>
           )}
 
           {websites.length === 0 && (

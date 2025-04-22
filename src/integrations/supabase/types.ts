@@ -12,24 +12,30 @@ export type Database = {
       websites: {
         Row: {
           created_at: string
+          description: string | null
           icon_url: string
           id: string
+          is_favorite: boolean
           name: string
           url: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          description?: string | null
           icon_url: string
           id?: string
+          is_favorite?: boolean
           name: string
           url: string
           user_id: string
         }
         Update: {
           created_at?: string
+          description?: string | null
           icon_url?: string
           id?: string
+          is_favorite?: boolean
           name?: string
           url?: string
           user_id?: string
