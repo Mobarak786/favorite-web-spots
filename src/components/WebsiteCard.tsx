@@ -129,11 +129,6 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
             {website.name}
           </p>
           
-          {website.description && (
-            <p className="text-xs text-gray-500 mt-1 line-clamp-2 text-center">
-              {website.description}
-            </p>
-          )}
         </CardContent>
       </Card>
 
