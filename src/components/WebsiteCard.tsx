@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Website } from '@/types/website';
-import { MoreHorizontal, Trash, Edit, Star, Share, Link, Linkedin, Facebook, WhatsApp } from 'lucide-react';
+import { MoreHorizontal, Trash, Edit, Star, Share, Link, Linkedin, Facebook, whatsapp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import {
@@ -138,7 +138,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
                       Copy Link
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleShare('whatsapp')}>
-                      <WhatsApp className="mr-2" size={16} />
+                      <whatsapp className="mr-2" size={16} />
                       WhatsApp
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleShare('linkedin')}>
