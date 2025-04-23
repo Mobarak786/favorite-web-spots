@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -70,14 +71,15 @@ const Auth: React.FC = () => {
           <CardDescription>Sign in to manage your favorite websites</CardDescription>
         </CardHeader>
 
-        <div className="px-6 mb-4">
+        <div className="px-6 mb-4 w-full">
           <Button 
             variant="outline" 
-            className="w-full" 
+            className="w-full relative group" 
             onClick={handleGuest}
             disabled={isSubmitting}
           >
             Continue as Guest
+            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gray-300 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
           </Button>
         </div>
 
@@ -177,3 +179,4 @@ const Auth: React.FC = () => {
 };
 
 export default Auth;
+
