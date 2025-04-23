@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Website } from '@/types/website';
-import { MoreHorizontal, Trash, Edit, Star } from 'lucide-react';
+import { MoreHorizontal, Trash, Edit, Star, Share, Link, Linkedin, Facebook, WhatsApp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import {
@@ -9,6 +9,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -67,6 +71,33 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
     }
   };
 
+  const handleShare = async (platform?: string) => {
+    try {
+      if (platform) {
+        let shareUrl = '';
+        switch (platform) {
+          case 'whatsapp':
+            shareUrl = `https://wa.me/?text=${encodeURIComponent(website.url)}`;
+            break;
+          case 'linkedin':
+            shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(website.url)}`;
+            break;
+          case 'facebook':
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(website.url)}`;
+            break;
+          default:
+            break;
+        }
+        window.open(shareUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        await navigator.clipboard.writeText(website.url);
+        toast.success('Link copied to clipboard!');
+      }
+    } catch (error) {
+      toast.error('Failed to share link');
+    }
+  };
+
   return (
     <>
       <Card className="group hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden h-[180px] animate-fade-in border-2 border-transparent hover:border-spot-accent">
@@ -95,7 +126,32 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
                   <MoreHorizontal size={16} />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-32">
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Share className="mr-2" size={16} />
+                    Share
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => handleShare()}>
+                      <Link className="mr-2" size={16} />
+                      Copy Link
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare('whatsapp')}>
+                      <WhatsApp className="mr-2" size={16} />
+                      WhatsApp
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare('linkedin')}>
+                      <Linkedin className="mr-2" size={16} />
+                      LinkedIn
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare('facebook')}>
+                      <Facebook className="mr-2" size={16} />
+                      Facebook
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
                   <Edit className="mr-2" size={16} />
                   Edit
