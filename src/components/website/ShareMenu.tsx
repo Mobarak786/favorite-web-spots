@@ -1,5 +1,5 @@
 
-import { Link, Linkedin, Facebook } from 'lucide-react';
+import { Link, Share2 } from 'lucide-react';
 import {
   DropdownMenuItem,
   DropdownMenuSubContent,
@@ -13,12 +13,21 @@ interface ShareMenuProps {
 const ShareMenu: React.FC<ShareMenuProps> = ({ url }) => {
   const handleShare = async (platform?: string) => {
     try {
+      if (platform === 'native') {
+        if (navigator.share) {
+          await navigator.share({
+            url: url,
+          });
+          return;
+        } else {
+          toast.error('Native sharing not supported on this device');
+          return;
+        }
+      }
+
       if (platform) {
         let shareUrl = '';
         switch (platform) {
-          case 'whatsapp':
-            shareUrl = `https://wa.me/?text=${encodeURIComponent(url)}`;
-            break;
           case 'linkedin':
             shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
             break;
@@ -40,17 +49,13 @@ const ShareMenu: React.FC<ShareMenuProps> = ({ url }) => {
 
   return (
     <DropdownMenuSubContent>
+      <DropdownMenuItem onClick={() => handleShare('native')}>
+        <Share2 className="mr-2" size={16} />
+        Share
+      </DropdownMenuItem>
       <DropdownMenuItem onClick={() => handleShare()}>
         <Link className="mr-2" size={16} />
         Copy Link
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => handleShare('linkedin')}>
-        <Linkedin className="mr-2" size={16} />
-        LinkedIn
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => handleShare('facebook')}>
-        <Facebook className="mr-2" size={16} />
-        Facebook
       </DropdownMenuItem>
     </DropdownMenuSubContent>
   );
