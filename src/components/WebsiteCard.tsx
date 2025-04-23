@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Website } from '@/types/website';
-import { MoreHorizontal, Trash, Edit, Star, Share, Link, Linkedin, Facebook, whatsapp } from 'lucide-react';
+import { MoreHorizontal, Trash, Edit, Star, Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import {
@@ -12,27 +13,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import ShareMenu from './website/ShareMenu';
+import EditDialog from './website/EditDialog';
+import DeleteDialog from './website/DeleteDialog';
 
 interface WebsiteCardProps {
   website: Website;
@@ -49,9 +33,6 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
 }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editedName, setEditedName] = useState(website.name);
-  const [editedUrl, setEditedUrl] = useState(website.url);
-  const [editedDescription, setEditedDescription] = useState(website.description || '');
 
   const handleClick = () => {
     window.open(website.url, "_blank", "noopener,noreferrer");
@@ -63,38 +44,9 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
     setShowDeleteDialog(false);
   };
 
-  const handleEdit = () => {
-    if (onEdit && editedName.trim() && editedUrl.trim()) {
-      onEdit(website.id, editedName, editedUrl, editedDescription.trim() || undefined);
-      toast.success(`Updated ${editedName}`);
-      setShowEditDialog(false);
-    }
-  };
-
-  const handleShare = async (platform?: string) => {
-    try {
-      if (platform) {
-        let shareUrl = '';
-        switch (platform) {
-          case 'whatsapp':
-            shareUrl = `https://wa.me/?text=${encodeURIComponent(website.url)}`;
-            break;
-          case 'linkedin':
-            shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(website.url)}`;
-            break;
-          case 'facebook':
-            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(website.url)}`;
-            break;
-          default:
-            break;
-        }
-        window.open(shareUrl, '_blank', 'noopener,noreferrer');
-      } else {
-        await navigator.clipboard.writeText(website.url);
-        toast.success('Link copied to clipboard!');
-      }
-    } catch (error) {
-      toast.error('Failed to share link');
+  const handleEdit = (name: string, url: string, description?: string) => {
+    if (onEdit) {
+      onEdit(website.id, name, url, description);
     }
   };
 
@@ -132,24 +84,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
                     <Share className="mr-2" size={16} />
                     Share
                   </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuItem onClick={() => handleShare()}>
-                      <Link className="mr-2" size={16} />
-                      Copy Link
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleShare('whatsapp')}>
-                      <whatsapp className="mr-2" size={16} />
-                      WhatsApp
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleShare('linkedin')}>
-                      <Linkedin className="mr-2" size={16} />
-                      LinkedIn
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleShare('facebook')}>
-                      <Facebook className="mr-2" size={16} />
-                      Facebook
-                    </DropdownMenuItem>
-                  </DropdownMenuSubContent>
+                  <ShareMenu url={website.url} />
                 </DropdownMenuSub>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
@@ -184,74 +119,24 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
           <p className="text-center font-medium text-sm mt-2 line-clamp-2 text-gray-800">
             {website.name}
           </p>
-          
         </CardContent>
       </Card>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Website</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove "{website.name}" from your favorites?
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleRemove}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onDelete={handleRemove}
+        websiteName={website.name}
+      />
 
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Website</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                value={editedName}
-                onChange={(e) => setEditedName(e.target.value)}
-                placeholder="Website name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="url">URL</Label>
-              <Input
-                id="url"
-                value={editedUrl}
-                onChange={(e) => setEditedUrl(e.target.value)}
-                placeholder="https://example.com"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description (Optional)</Label>
-              <Input
-                id="description"
-                value={editedDescription}
-                onChange={(e) => setEditedDescription(e.target.value)}
-                placeholder="Add a description..."
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleEdit}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EditDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        onEdit={handleEdit}
+        initialName={website.name}
+        initialUrl={website.url}
+        initialDescription={website.description}
+      />
     </>
   );
 };
