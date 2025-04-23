@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -7,12 +6,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Separator } from "@/components/ui/separator";
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, signInAsGuest } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,6 +47,18 @@ const Auth: React.FC = () => {
     }
   };
 
+  const handleGuest = async () => {
+    setIsSubmitting(true);
+    try {
+      await signInAsGuest();
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing in as guest:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-grid-pattern bg-green-gradient">
       <Card className="w-full max-w-md">
@@ -57,6 +69,24 @@ const Auth: React.FC = () => {
           <CardTitle className="text-2xl">Web Spot</CardTitle>
           <CardDescription>Sign in to manage your favorite websites</CardDescription>
         </CardHeader>
+
+        <div className="px-6 mb-4">
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={handleGuest}
+            disabled={isSubmitting}
+          >
+            Continue as Guest
+          </Button>
+        </div>
+
+        <div className="px-6 mb-4 flex items-center gap-4">
+          <Separator className="flex-grow" />
+          <span className="text-sm text-muted-foreground">or</span>
+          <Separator className="flex-grow" />
+        </div>
+
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
