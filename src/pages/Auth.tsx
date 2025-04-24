@@ -18,7 +18,7 @@ const Auth: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      navigate("/");
+      navigate("/dashboard");
     }
   }, [user, navigate]);
 
@@ -27,7 +27,7 @@ const Auth: React.FC = () => {
     setIsSubmitting(true);
     try {
       await signIn(email, password);
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error signing in:", error);
     } finally {
@@ -52,7 +52,7 @@ const Auth: React.FC = () => {
     setIsSubmitting(true);
     try {
       await signInAsGuest();
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error signing in as guest:", error);
     } finally {
