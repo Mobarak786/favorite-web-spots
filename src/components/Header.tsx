@@ -11,7 +11,7 @@ const Header: React.FC = () => {
   return (
     <header className="fixed w-full top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <NavLink to="/" className="flex items-center gap-2">
+        <NavLink to="/dashboard" className="flex items-center gap-2">
           <Globe className="h-6 w-6 text-spot-primary" />
           <span className="font-semibold text-xl">Web Spot</span>
         </NavLink>

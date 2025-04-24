@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import React from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import AuthGuard from "./components/AuthGuard";
+import LandingPage from "./pages/LandingPage";
 
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
@@ -24,8 +25,9 @@ const App = () => {
             <Sonner />
             <BrowserRouter>
               <Routes>
+                <Route path="/" element={<LandingPage />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
+                <Route path="/dashboard" element={<AuthGuard><Index /></AuthGuard>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
