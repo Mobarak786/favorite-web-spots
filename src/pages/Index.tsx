@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { Website } from '@/types/website';
 import { addWebsite, getWebsites, removeWebsite, updateWebsite } from '@/services/websiteStorage';
@@ -11,18 +10,33 @@ import SearchBar from '@/components/SearchBar';
 import { Globe } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index: React.FC = () => {
   const [websites, setWebsites] = useState<Website[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const dialogTriggerRef = useRef<HTMLButtonElement>(null);
+  const { user, isGuest } = useAuth();
 
   useEffect(() => {
     let ignore = false;
     
     async function fetchData() {
       setIsLoading(true);
+      
+      // For guest users, fetch websites from localStorage
+      if (isGuest) {
+        const guestWebsitesStr = localStorage.getItem('guest_websites') || '[]';
+        const guestWebsites: Website[] = JSON.parse(guestWebsitesStr);
+        if (!ignore) {
+          setWebsites(guestWebsites);
+          setIsLoading(false);
+        }
+        return;
+      }
+      
+      // For authenticated users, fetch websites from Supabase
       const list = await getWebsites();
       if (!ignore) {
         setWebsites(list);
@@ -32,15 +46,17 @@ const Index: React.FC = () => {
 
     fetchData();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      fetchData();
-    });
+    // If not a guest user, set up auth state change listener
+    const subscription = !isGuest ? 
+      supabase.auth.onAuthStateChange(() => {
+        fetchData();
+      }).data.subscription : null;
 
     return () => {
       ignore = true;
-      subscription?.unsubscribe();
+      if (subscription) subscription.unsubscribe();
     };
-  }, []);
+  }, [isGuest]);
 
   const handleAddWebsite = async (name: string, url: string, iconUrl: string, description?: string) => {
     const newWebsite = await addWebsite({ name, url, iconUrl, description });

@@ -1,6 +1,8 @@
+
 import { Website } from "../types/website";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Fetch all websites for the logged-in user
 export const getWebsites = async (): Promise<Website[]> => {
@@ -41,16 +43,47 @@ export const addWebsite = async (
   website: Omit<Website, "id" | "createdAt" | "isFavorite">
 ): Promise<Website | undefined> => {
   try {
-    const user = (await supabase.auth.getUser()).data.user;
-    if (!user) {
+    // Get current user from Supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // Check if we have a guest user in localStorage
+    const guestUserStr = localStorage.getItem('guest_user');
+    const isGuest = !!guestUserStr;
+    
+    if (!user && !isGuest) {
       toast.error("You need to be logged in to add websites.");
       return undefined;
     }
 
+    // For guest users, store websites in localStorage instead of Supabase
+    if (isGuest) {
+      // Get existing guest websites or initialize array
+      const guestWebsitesStr = localStorage.getItem('guest_websites') || '[]';
+      const guestWebsites: Website[] = JSON.parse(guestWebsitesStr);
+      
+      // Create new website with local ID
+      const newWebsite: Website = {
+        id: `guest_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        name: website.name,
+        url: website.url,
+        iconUrl: website.iconUrl,
+        description: website.description,
+        isFavorite: false,
+        createdAt: Date.now(),
+      };
+      
+      // Add to local storage
+      guestWebsites.push(newWebsite);
+      localStorage.setItem('guest_websites', JSON.stringify(guestWebsites));
+      
+      return newWebsite;
+    }
+
+    // For authenticated users, store in Supabase
     const { data, error } = await supabase
       .from("websites")
       .insert({
-        user_id: user.id,
+        user_id: user!.id,
         name: website.name,
         url: website.url,
         icon_url: website.iconUrl,
@@ -83,6 +116,20 @@ export const addWebsite = async (
 
 export const removeWebsite = async (id: string): Promise<void> => {
   try {
+    // Check if we have a guest user
+    const guestUserStr = localStorage.getItem('guest_user');
+    const isGuest = !!guestUserStr;
+    
+    if (isGuest) {
+      // Handle removal from localStorage for guest users
+      const guestWebsitesStr = localStorage.getItem('guest_websites') || '[]';
+      const guestWebsites: Website[] = JSON.parse(guestWebsitesStr);
+      const updatedWebsites = guestWebsites.filter(website => website.id !== id);
+      localStorage.setItem('guest_websites', JSON.stringify(updatedWebsites));
+      return;
+    }
+    
+    // For authenticated users, remove from Supabase
     const { error } = await supabase
       .from("websites")
       .delete()
@@ -102,6 +149,30 @@ export const updateWebsite = async (
   updates: Partial<Pick<Website, "name" | "url" | "description" | "isFavorite">>
 ): Promise<void> => {
   try {
+    // Check if we have a guest user
+    const guestUserStr = localStorage.getItem('guest_user');
+    const isGuest = !!guestUserStr;
+    
+    if (isGuest) {
+      // Handle updates in localStorage for guest users
+      const guestWebsitesStr = localStorage.getItem('guest_websites') || '[]';
+      const guestWebsites: Website[] = JSON.parse(guestWebsitesStr);
+      
+      const updatedWebsites = guestWebsites.map(website => {
+        if (website.id === id) {
+          return { 
+            ...website, 
+            ...updates,
+          };
+        }
+        return website;
+      });
+      
+      localStorage.setItem('guest_websites', JSON.stringify(updatedWebsites));
+      return;
+    }
+    
+    // For authenticated users, update in Supabase
     const patch: any = {};
     if ("name" in updates) patch.name = updates.name;
     if ("url" in updates) patch.url = updates.url;
