@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
+        console.log("Auth state changed:", event, currentSession?.user?.email);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         setIsGuest(false);
@@ -51,6 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      console.log("Initial session check:", currentSession?.user?.email);
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       setLoading(false);
@@ -105,15 +108,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    console.log("Sign out triggered. Current user:", user?.email);
+    console.log("Is guest user:", isGuest);
+    
     try {
       if (isGuest) {
+        console.log("Signing out guest user");
         localStorage.removeItem(GUEST_USER_KEY);
+        // Also remove guest websites
+        localStorage.removeItem('guest_websites');
         setUser(null);
         setIsGuest(false);
+        toast.success("Signed out successfully");
       } else {
-        await supabase.auth.signOut();
+        console.log("Signing out authenticated user");
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+        toast.success("Signed out successfully");
       }
     } catch (error: any) {
+      console.error("Error during sign out:", error);
       toast.error(error.message || "Error signing out");
     }
   };

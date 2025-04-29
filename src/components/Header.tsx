@@ -1,12 +1,19 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Globe, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Header: React.FC = () => {
   const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    // After signing out, redirect to the landing page
+    navigate('/');
+  };
 
   return (
     <header className="fixed w-full top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200">
@@ -20,7 +27,7 @@ const Header: React.FC = () => {
           <Button 
             variant="ghost" 
             size="icon"
-            onClick={() => signOut()} 
+            onClick={handleSignOut} 
             title="Sign Out"
           >
             <LogOut className="h-5 w-5" />
