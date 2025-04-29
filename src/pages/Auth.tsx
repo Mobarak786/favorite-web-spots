@@ -1,9 +1,15 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -68,24 +74,20 @@ const Auth: React.FC = () => {
             <Globe className="h-12 w-12 text-spot-primary" />
           </div>
           <CardTitle className="text-2xl">Web Spot</CardTitle>
-          <CardDescription>Sign in to manage your favorite websites</CardDescription>
+          <CardDescription>
+            Sign in to manage your favorite websites
+          </CardDescription>
         </CardHeader>
 
-        <Button 
-          variant="outline" 
-          className="w-full relative group mx-6 mb-4" 
+        <Button
+          variant="outline"
+          className="w-full mb-6"
           onClick={handleGuest}
           disabled={isSubmitting}
         >
           Continue as Guest
           <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gray-300 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
         </Button>
-
-        <div className="px-6 mb-4 flex items-center gap-4">
-          <Separator className="flex-grow" />
-          <span className="text-sm text-muted-foreground">or</span>
-          <Separator className="flex-grow" />
-        </div>
 
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -97,7 +99,9 @@ const Auth: React.FC = () => {
             <form onSubmit={handleSignIn}>
               <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium">Email</label>
+                  <label htmlFor="email" className="text-sm font-medium">
+                    Email
+                  </label>
                   <Input
                     id="email"
                     type="email"
@@ -108,7 +112,9 @@ const Auth: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="password" className="text-sm font-medium">Password</label>
+                  <label htmlFor="password" className="text-sm font-medium">
+                    Password
+                  </label>
                   <Input
                     id="password"
                     type="password"
@@ -135,7 +141,9 @@ const Auth: React.FC = () => {
             <form onSubmit={handleSignUp}>
               <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <label htmlFor="email-signup" className="text-sm font-medium">Email</label>
+                  <label htmlFor="email-signup" className="text-sm font-medium">
+                    Email
+                  </label>
                   <Input
                     id="email-signup"
                     type="email"
@@ -146,7 +154,12 @@ const Auth: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="password-signup" className="text-sm font-medium">Password</label>
+                  <label
+                    htmlFor="password-signup"
+                    className="text-sm font-medium"
+                  >
+                    Password
+                  </label>
                   <Input
                     id="password-signup"
                     type="password"
@@ -156,7 +169,9 @@ const Auth: React.FC = () => {
                     required
                     minLength={6}
                   />
-                  <p className="text-xs text-gray-500">Password must be at least 6 characters</p>
+                  <p className="text-xs text-gray-500">
+                    Password must be at least 6 characters
+                  </p>
                 </div>
               </CardContent>
               <CardFooter>
@@ -177,4 +192,3 @@ const Auth: React.FC = () => {
 };
 
 export default Auth;
-
