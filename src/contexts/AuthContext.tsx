@@ -35,6 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check for guest user in localStorage
     const guestUser = localStorage.getItem(GUEST_USER_KEY);
     if (guestUser) {
+      console.log("Found guest user in localStorage", JSON.parse(guestUser));
       setUser(JSON.parse(guestUser));
       setIsGuest(true);
       setLoading(false);
@@ -43,11 +44,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
+      async (event, currentSession) => {
         console.log("Auth state changed:", event, currentSession?.user?.email);
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        setIsGuest(false);
+        
+        if (currentSession) {
+          setSession(currentSession);
+          setUser(currentSession.user);
+          setIsGuest(false);
+          
+          if (event === 'SIGNED_IN') {
+            console.log("User signed in successfully");
+            toast.success("Signed in successfully");
+          }
+        } else {
+          setSession(null);
+          setUser(null);
+        }
       }
     );
 
@@ -74,6 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsGuest(true);
       setSession(null);
       toast.success("Signed in as guest");
+      console.log("Signed in as guest user", guestUser);
     } catch (error: any) {
       toast.error(error.message || "Error signing in as guest");
       throw error;
@@ -82,11 +95,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log("Attempting to sign in with email:", email);
+      const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      if (error) throw error;
+      
+      if (error) {
+        console.error("Error during sign in:", error);
+        throw error;
+      }
+      
+      console.log("Sign in successful:", data.user?.email);
     } catch (error: any) {
       toast.error(error.message || "Error signing in");
       throw error;

@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -23,7 +24,9 @@ const Auth: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // If user is already logged in, redirect to dashboard
     if (user) {
+      console.log("User already logged in, redirecting to dashboard", user);
       navigate("/dashboard");
     }
   }, [user, navigate]);
@@ -33,9 +36,11 @@ const Auth: React.FC = () => {
     setIsSubmitting(true);
     try {
       await signIn(email, password);
+      console.log("Sign in successful, redirecting to dashboard");
       navigate("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing in:", error);
+      toast.error(error.message || "Error signing in");
     } finally {
       setIsSubmitting(false);
     }
@@ -47,8 +52,10 @@ const Auth: React.FC = () => {
     try {
       await signUp(email, password);
       // Don't navigate, wait for email verification
-    } catch (error) {
+      toast.success("Sign up successful! Please check your email for verification.");
+    } catch (error: any) {
       console.error("Error signing up:", error);
+      toast.error(error.message || "Error signing up");
     } finally {
       setIsSubmitting(false);
     }
@@ -58,9 +65,11 @@ const Auth: React.FC = () => {
     setIsSubmitting(true);
     try {
       await signInAsGuest();
+      console.log("Signed in as guest, redirecting to dashboard");
       navigate("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing in as guest:", error);
+      toast.error(error.message || "Error signing in as guest");
     } finally {
       setIsSubmitting(false);
     }
